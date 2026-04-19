@@ -1,0 +1,5 @@
+Total rows: 162
+Header rows: 7
+Data rows: 155
+Fixed data rows: 155
+Problem rows: 0
