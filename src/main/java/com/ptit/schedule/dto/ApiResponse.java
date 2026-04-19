@@ -22,7 +22,6 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()
                 .success(true)
-                .message("Success")
                 .data(data)
                 .status(200)
                 .build();
@@ -30,7 +29,7 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> success(String message) {
         return ApiResponse.<T>builder()
                 .success(true)
-                .message(message)
+                .message(message != null ? message : "Success")
                 .status(200)
                 .build();
     }

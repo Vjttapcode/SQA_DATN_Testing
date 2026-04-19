@@ -10,6 +10,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,15 +28,16 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
                       AccessDeniedException accessDeniedException) throws IOException, ServletException {
         
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
         Map<String, Object> body = new HashMap<>();
         body.put("status", 403);
-        body.put("message", "Forbidden - Bạn không có quyền truy cập tài nguyên này");
+        body.put("message", "Access Denied");
         body.put("error", accessDeniedException.getMessage());
         body.put("path", request.getServletPath());
 
         final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getOutputStream(), body);
+        mapper.writeValue(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), body);
     }
 }

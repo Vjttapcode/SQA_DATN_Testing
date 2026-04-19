@@ -4,29 +4,27 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConflictResult {
-    
+
     private List<RoomConflict> roomConflicts;
     private List<TeacherConflict> teacherConflicts;
     private int totalConflicts;
-    
+
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RoomConflict {
         private String room;
-        private ScheduleEntry.TimeSlot timeSlot;  // Đối tượng TimeSlot đầy đủ
+        private ScheduleEntry.TimeSlot timeSlot;
         private List<ScheduleEntry> conflictingSchedules;
-        private List<String> conflictWeeks; // Danh sách các tuần bị xung đột
+        private List<String> conflictWeeks;
         
         public String getConflictDescription() {
             if (conflictWeeks != null && !conflictWeeks.isEmpty()) {

@@ -1,5 +1,6 @@
 package com.ptit.schedule.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,22 +21,26 @@ public class ScheduleValidationResult {
     private String fileName;
     private int totalEntries;
     private long fileSize;
-    
+
     // Computed properties for easier frontend handling
+    @JsonProperty
     public boolean hasConflicts() {
         return conflictResult != null && conflictResult.getTotalConflicts() > 0;
     }
-    
+
+    @JsonProperty
     public int getRoomConflictCount() {
-        return conflictResult != null && conflictResult.getRoomConflicts() != null 
+        return conflictResult != null && conflictResult.getRoomConflicts() != null
             ? conflictResult.getRoomConflicts().size() : 0;
     }
-    
+
+    @JsonProperty
     public int getTeacherConflictCount() {
-        return conflictResult != null && conflictResult.getTeacherConflicts() != null 
+        return conflictResult != null && conflictResult.getTeacherConflicts() != null
             ? conflictResult.getTeacherConflicts().size() : 0;
     }
-    
+
+    @JsonProperty
     public String getFormattedFileSize() {
         if (fileSize == 0) return "0 Bytes";
         int k = 1024;

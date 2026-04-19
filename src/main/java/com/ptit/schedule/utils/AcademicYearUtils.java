@@ -30,12 +30,12 @@ public class AcademicYearUtils {
         String normalized = input.replace("–", "-");
 
         // Regex: tách theo dấu "-" nhưng lấy đúng nhóm 2 bên
-        Pattern pattern = Pattern.compile("^(.+?)\\s*-\\s*(\\d{4}-\\d{4})$");
+        Pattern pattern = Pattern.compile("^(.+?)\\s*-\\s*(\\d{4}-\\d{4})\\s*$");
         Matcher matcher = pattern.matcher(normalized);
 
         if (matcher.matches()) {
-            String semester = matcher.group(1).trim();
-            String academicYear = matcher.group(2).trim();
+            String semester = matcher.group(1);
+            String academicYear = matcher.group(2);
             return Pair.of(semester, academicYear);
         }
 

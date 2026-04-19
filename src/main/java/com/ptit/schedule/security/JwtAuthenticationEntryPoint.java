@@ -10,6 +10,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,15 +28,16 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                         AuthenticationException authException) throws IOException, ServletException {
         
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
         Map<String, Object> body = new HashMap<>();
         body.put("status", 401);
-        body.put("message", "Unauthorized - Token không hợp lệ hoặc đã hết hạn");
+        body.put("message", "Token expired");
         body.put("error", authException.getMessage());
         body.put("path", request.getServletPath());
 
         final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getOutputStream(), body);
+        mapper.writeValue(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), body);
     }
 }
