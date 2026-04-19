@@ -1,0 +1,1580 @@
+﻿{
+    "info":  {
+                 "name":  "Room Occupancy + Subject Management API Tests",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+                 "description":  "Auto-generated Postman collection for Room Occupancy and Subject Management APIs based on the Spring Boot backend in BE/schedule. Includes auth and semester setup for end-to-end execution."
+             },
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             },
+    "item":  [
+                 {
+                     "name":  "00 Setup \u0026 Auth",
+                     "item":  [
+                                  {
+                                      "name":  "Login Admin And Initialize Run Context",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/auth/login",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "auth":  {
+                                                                   "type":  "noauth"
+                                                               },
+                                                      "description":  "Khởi tạo runId, biến test, sau đó đăng nhập admin và lưu JWT token vào environment."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "prerequest",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "const runId = `${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 1000).toString().padStart(3, \"0\")}`;",
+                                                                                    "pm.environment.set(\"runId\", runId);",
+                                                                                    "pm.environment.set(\"primarySemesterName\", `API_PRIMARY_${runId}`);",
+                                                                                    "pm.environment.set(\"primaryAcademicYear\", \"2099-2100\");",
+                                                                                    "pm.environment.set(\"deleteNameSemesterName\", `API_DELETE_${runId}`);",
+                                                                                    "pm.environment.set(\"deleteNameAcademicYear\", \"2100-2101\");",
+                                                                                    "pm.environment.set(\"regularSubjectCode\", `REG${runId}`);",
+                                                                                    "pm.environment.set(\"commonSubjectCode\", `COM${runId}`);",
+                                                                                    "pm.environment.set(\"deleteNameSubjectCode\", `DEL${runId}`);",
+                                                                                    "pm.environment.set(\"majorCode\", `API${runId}`);",
+                                                                                    "pm.environment.set(\"classYear\", \"2026\");",
+                                                                                    "pm.environment.set(\"facultyId\", \"CN1\");",
+                                                                                    "pm.environment.set(\"excelSemesterLabel\", `${pm.environment.get(\"primarySemesterName\")} - ${pm.environment.get(\"primaryAcademicYear\")}`);",
+                                                                                    "pm.environment.unset(\"token\");",
+                                                                                    "pm.environment.unset(\"primarySemesterId\");",
+                                                                                    "pm.environment.unset(\"deleteNameSemesterId\");",
+                                                                                    "pm.environment.unset(\"regularSubjectId\");",
+                                                                                    "pm.environment.unset(\"commonSubjectId\");",
+                                                                                    "pm.environment.unset(\"subjectMajorId\");"
+                                                                                ]
+                                                                   }
+                                                    },
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Login returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Login success payload is valid\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.token).to.be.a(\"string\").and.not.empty;",
+                                                                                    "    pm.expect(json.data.username).to.eql(pm.environment.get(\"adminUsername\"));",
+                                                                                    "});",
+                                                                                    "pm.environment.set(\"token\", json.data.token);"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Current User",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/auth/me",
+                                                      "description":  "Xác nhận token vừa lưu hợp lệ và user hiện tại là admin."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Current user returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Current user is admin\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.username).to.eql(pm.environment.get(\"adminUsername\"));",
+                                                                                    "    pm.expect(json.data.role).to.eql(\"ADMIN\");",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Create Primary Semester",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/semesters",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"semesterName\": \"{{primarySemesterName}}\",\n  \"academicYear\": \"{{primaryAcademicYear}}\",\n  \"startDate\": \"2099-01-01\",\n  \"endDate\": \"2099-05-31\",\n  \"isActive\": false,\n  \"description\": \"Primary test semester {{runId}}\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "description":  "Tạo semester chính dùng cho Room Occupancy và Subject Management."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Create primary semester returns 201\", function () { pm.response.to.have.status(201); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Primary semester created\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.id).to.exist;",
+                                                                                    "    pm.expect(json.data.semesterName).to.eql(pm.environment.get(\"primarySemesterName\"));",
+                                                                                    "    pm.expect(json.data.academicYear).to.eql(pm.environment.get(\"primaryAcademicYear\"));",
+                                                                                    "});",
+                                                                                    "pm.environment.set(\"primarySemesterId\", json.data.id);"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Create Delete-By-Name Semester",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/semesters",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"semesterName\": \"{{deleteNameSemesterName}}\",\n  \"academicYear\": \"{{deleteNameAcademicYear}}\",\n  \"startDate\": \"2100-01-01\",\n  \"endDate\": \"2100-05-31\",\n  \"isActive\": false,\n  \"description\": \"Delete by name semester {{runId}}\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "description":  "Tạo semester riêng để test xóa subject theo semesterName mà không ảnh hưởng dữ liệu chính."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Create delete-name semester returns 201\", function () { pm.response.to.have.status(201); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Delete-name semester created\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.id).to.exist;",
+                                                                                    "    pm.expect(json.data.semesterName).to.eql(pm.environment.get(\"deleteNameSemesterName\"));",
+                                                                                    "    pm.expect(json.data.academicYear).to.eql(pm.environment.get(\"deleteNameAcademicYear\"));",
+                                                                                    "});",
+                                                                                    "pm.environment.set(\"deleteNameSemesterId\", json.data.id);"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Unauthorized Room Occupancy Request",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/room/{{roomIdPrimary}}",
+                                                      "auth":  {
+                                                                   "type":  "noauth"
+                                                               },
+                                                      "description":  "Xác nhận endpoint protected trả 401 khi không gửi JWT."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Protected endpoint without token returns 401\", function () { pm.response.to.have.status(401); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Unauthorized payload contains message\", function () {",
+                                                                                    "    pm.expect(json.status).to.eql(401);",
+                                                                                    "    pm.expect(json.message).to.include(\"Unauthorized\");",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "01 Room Occupancy",
+                     "item":  [
+                                  {
+                                      "name":  "Bulk Create Occupancies - Initial",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/bulk-create",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"semesterId\": {{primarySemesterId}},\n  \"items\": [\n    {\n      \"roomId\": {{roomIdPrimary}},\n      \"dayOfWeek\": 2,\n      \"kip\": 1,\n      \"subjectCode\": \"{{regularSubjectCode}}\",\n      \"subjectName\": \"Regular Subject {{runId}}\"\n    },\n    {\n      \"roomId\": {{roomIdSecondary}},\n      \"dayOfWeek\": 3,\n      \"kip\": 2,\n      \"subjectCode\": \"{{commonSubjectCode}}\",\n      \"subjectName\": \"Common Subject {{runId}}\"\n    },\n    {\n      \"roomId\": {{roomIdSecondary}},\n      \"dayOfWeek\": 5,\n      \"kip\": 4,\n      \"subjectCode\": \"{{deleteNameSubjectCode}}\",\n      \"subjectName\": \"Delete Subject {{runId}}\"\n    }\n  ]\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "description":  "Tạo 3 slot occupancy mới cho semester chính."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Initial bulk create returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Initial bulk create creates 3 occupancies\", function () {",
+                                                                                    "    pm.expect(json.status).to.eql(\"success\");",
+                                                                                    "    pm.expect(json.semesterId).to.eql(Number(pm.environment.get(\"primarySemesterId\")));",
+                                                                                    "    pm.expect(json.totalRequested).to.eql(3);",
+                                                                                    "    pm.expect(json.totalCreated).to.eql(3);",
+                                                                                    "    pm.expect(json.totalSkipped).to.eql(0);",
+                                                                                    "    pm.expect(json.data).to.be.an(\"array\").with.lengthOf(3);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Bulk Create Occupancies - Duplicate And Invalid",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/bulk-create",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"semesterId\": {{primarySemesterId}},\n  \"items\": [\n    {\n      \"roomId\": {{roomIdPrimary}},\n      \"dayOfWeek\": 2,\n      \"kip\": 1,\n      \"subjectCode\": \"{{regularSubjectCode}}\",\n      \"subjectName\": \"Regular Subject {{runId}}\"\n    },\n    {\n      \"roomId\": 999999,\n      \"dayOfWeek\": 4,\n      \"kip\": 3,\n      \"subjectCode\": \"INVALID\",\n      \"subjectName\": \"Missing Room\"\n    },\n    {\n      \"roomId\": {{roomIdPrimary}},\n      \"dayOfWeek\": 6,\n      \"kip\": 6,\n      \"subjectCode\": \"NEW{{runId}}\",\n      \"subjectName\": \"New Slot {{runId}}\"\n    }\n  ]\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "description":  "Gửi 1 record trùng, 1 room không tồn tại và 1 record mới để xác nhận logic skip từng item."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Mixed bulk create returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Duplicate and invalid items are skipped\", function () {",
+                                                                                    "    pm.expect(json.status).to.eql(\"success\");",
+                                                                                    "    pm.expect(json.totalRequested).to.eql(3);",
+                                                                                    "    pm.expect(json.totalCreated).to.eql(1);",
+                                                                                    "    pm.expect(json.totalSkipped).to.eql(2);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Check Availability - Occupied Slot",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/check-availability?roomId={{roomIdPrimary}}\u0026semesterId={{primarySemesterId}}\u0026dayOfWeek=2\u0026period=1",
+                                                      "description":  "Slot đã tạo ở request bulk-create đầu tiên phải trả available=false."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Occupied slot check returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Occupied slot is unavailable\", function () {",
+                                                                                    "    pm.expect(json.available).to.eql(false);",
+                                                                                    "    pm.expect(json.roomId).to.eql(Number(pm.environment.get(\"roomIdPrimary\")));",
+                                                                                    "    pm.expect(json.semesterId).to.eql(Number(pm.environment.get(\"primarySemesterId\")));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Check Availability - Free Slot",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/check-availability?roomId={{roomIdSecondary}}\u0026semesterId={{primarySemesterId}}\u0026dayOfWeek=7\u0026period=6",
+                                                      "description":  "Slot chưa bị chiếm phải trả available=true."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Free slot check returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Free slot is available\", function () {",
+                                                                                    "    pm.expect(json.available).to.eql(true);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Occupancies By Room",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/room/{{roomIdPrimary}}?page=0\u0026size=10"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get occupancies by room returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Room occupancy page has content\", function () {",
+                                                                                    "    pm.expect(json.pageNum).to.eql(0);",
+                                                                                    "    pm.expect(json.total).to.be.at.least(1);",
+                                                                                    "    pm.expect(json.content[0].roomId).to.eql(Number(pm.environment.get(\"roomIdPrimary\")));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Occupancies By Room With Filters",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/room/{{roomIdPrimary}}?semesterId={{primarySemesterId}}\u0026dayOfWeek=2\u0026period=1\u0026search={{regularSubjectCode}}\u0026page=0\u0026size=10"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Filtered room occupancies returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Filtered room occupancies match the selected slot\", function () {",
+                                                                                    "    pm.expect(json.total).to.eql(1);",
+                                                                                    "    pm.expect(json.content[0].dayOfWeek).to.eql(2);",
+                                                                                    "    pm.expect(json.content[0].period).to.eql(1);",
+                                                                                    "    pm.expect(json.content[0].note).to.include(pm.environment.get(\"regularSubjectCode\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Occupancies By Room And Semester",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/room/{{roomIdPrimary}}/semester/{{primarySemesterId}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get occupancies by room and semester returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Room and semester occupancy list is not empty\", function () {",
+                                                                                    "    pm.expect(json).to.be.an(\"array\").with.length.greaterThan(0);",
+                                                                                    "    pm.expect(json[0].semesterId).to.eql(Number(pm.environment.get(\"primarySemesterId\")));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Occupancies By Semester",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/semester/{{primarySemesterId}}?page=0\u0026size=20"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get occupancies by semester returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Semester occupancy page shows all created slots\", function () {",
+                                                                                    "    pm.expect(json.total).to.eql(4);",
+                                                                                    "    pm.expect(json.content).to.be.an(\"array\").with.length.greaterThan(0);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Semester Statistics",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/semester/{{primarySemesterId}}/statistics"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get semester statistics returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Semester statistics contain summary fields\", function () {",
+                                                                                    "    pm.expect(json.totalRoomsUsed).to.be.at.least(2);",
+                                                                                    "    pm.expect(json.totalOccupiedSlots).to.eql(4);",
+                                                                                    "    pm.expect(json.occupancyByDay).to.have.property(\"Thứ 2\");",
+                                                                                    "    pm.expect(json.occupancyByPeriod).to.have.property(\"Kíp 1\");",
+                                                                                    "    pm.expect(json.topRooms).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Rooms Status With Filters",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/rooms-status/semester/{{primarySemesterId}}?building=A2\u0026type=ENGLISH_CLASS\u0026occupancyStatus=USED\u0026minCapacity=40\u0026maxCapacity=60\u0026search=404\u0026page=0\u0026size=20"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get rooms status returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Rooms status filter returns used A2 English room\", function () {",
+                                                                                    "    pm.expect(json.content).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    pm.expect(json.content[0].id).to.eql(Number(pm.environment.get(\"roomIdSecondary\")));",
+                                                                                    "    pm.expect(json.content[0].building).to.eql(\"A2\");",
+                                                                                    "    pm.expect(json.content[0].type).to.eql(\"ENGLISH_CLASS\");",
+                                                                                    "    pm.expect(json.content[0].occupancyStatus).to.eql(\"USED\");",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Room Status By Room And Semester",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/room/{{roomIdSecondary}}/status/semester/{{primarySemesterId}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get room status returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Room status includes occupied slots\", function () {",
+                                                                                    "    pm.expect(json.id).to.eql(Number(pm.environment.get(\"roomIdSecondary\")));",
+                                                                                    "    pm.expect(json.totalOccupiedSlots).to.be.at.least(2);",
+                                                                                    "    pm.expect(json.occupancyStatus).to.eql(\"USED\");",
+                                                                                    "    pm.expect(json.occupiedSlots).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Available Rooms",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/available-rooms?semesterId={{primarySemesterId}}\u0026dayOfWeek=2\u0026period=1\u0026page=0\u0026size=20"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get available rooms returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Occupied room is excluded from available rooms\", function () {",
+                                                                                    "    pm.expect(json.content).to.be.an(\"array\");",
+                                                                                    "    const ids = json.content.map(item =\u003e item.id);",
+                                                                                    "    pm.expect(ids).to.not.include(Number(pm.environment.get(\"roomIdPrimary\")));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Delete Occupancies By Semester",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/semester/{{primarySemesterId}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Delete occupancies returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Delete occupancies response is successful\", function () {",
+                                                                                    "    pm.expect(json.status).to.eql(\"success\");",
+                                                                                    "    pm.expect(json.semesterId).to.eql(Number(pm.environment.get(\"primarySemesterId\")));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Verify Occupancies Deleted By Room And Semester",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/room/{{roomIdPrimary}}/semester/{{primarySemesterId}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Verify deleted occupancies returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Room semester occupancies are empty after delete\", function () {",
+                                                                                    "    pm.expect(json).to.be.an(\"array\").with.lengthOf(0);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Verify Slot Available After Delete",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/v1/room-occupancies/check-availability?roomId={{roomIdPrimary}}\u0026semesterId={{primarySemesterId}}\u0026dayOfWeek=2\u0026period=1"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Verify slot availability after delete returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Deleted slot becomes available again\", function () {",
+                                                                                    "    pm.expect(json.available).to.eql(true);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "02 Subject Management",
+                     "item":  [
+                                  {
+                                      "name":  "Health Check",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/health"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Subject health returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Subject health reports server OK\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.eql(\"Server is OK\");",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Create Regular Subject",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"subjectCode\": \"{{regularSubjectCode}}\",\n  \"subjectName\": \"Regular Subject {{runId}}\",\n  \"studentsPerClass\": 40,\n  \"numberOfClasses\": 2,\n  \"credits\": 3,\n  \"theoryHours\": 30,\n  \"exerciseHours\": 15,\n  \"projectHours\": 0,\n  \"labHours\": 0,\n  \"selfStudyHours\": 60,\n  \"department\": \"SoftwareEngineering\",\n  \"examFormat\": \"Written\",\n  \"classYear\": \"{{classYear}}\",\n  \"facultyId\": \"{{facultyId}}\",\n  \"majorId\": \"{{majorCode}}\",\n  \"majorName\": \"API Major {{runId}}\",\n  \"programType\": \"CQ\",\n  \"numberOfStudents\": 80,\n  \"semesterName\": \"{{primarySemesterName}}\",\n  \"academicYear\": \"{{primaryAcademicYear}}\",\n  \"isCommon\": false\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Create regular subject returns 201\", function () { pm.response.to.have.status(201); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Regular subject create response is successful\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.subjectCode).to.eql(pm.environment.get(\"regularSubjectCode\"));",
+                                                                                    "    pm.expect(json.data.semesterName).to.eql(pm.environment.get(\"primarySemesterName\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Create Regular Subject Again To Verify Upsert Behavior",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"subjectCode\": \"{{regularSubjectCode}}\",\n  \"subjectName\": \"Regular Subject Upsert {{runId}}\",\n  \"studentsPerClass\": 45,\n  \"numberOfClasses\": 3,\n  \"credits\": 3,\n  \"theoryHours\": 32,\n  \"exerciseHours\": 10,\n  \"projectHours\": 2,\n  \"labHours\": 0,\n  \"selfStudyHours\": 55,\n  \"department\": \"SoftwareEngineering\",\n  \"examFormat\": \"Oral\",\n  \"classYear\": \"{{classYear}}\",\n  \"facultyId\": \"{{facultyId}}\",\n  \"majorId\": \"{{majorCode}}\",\n  \"majorName\": \"API Major {{runId}}\",\n  \"programType\": \"CQ\",\n  \"numberOfStudents\": 90,\n  \"semesterName\": \"{{primarySemesterName}}\",\n  \"academicYear\": \"{{primaryAcademicYear}}\",\n  \"isCommon\": false\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "description":  "Backend hiện tại cập nhật bản ghi đã tồn tại và vẫn trả 201 thay vì 409."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Duplicate regular subject create still returns 201\", function () { pm.response.to.have.status(201); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Duplicate regular subject follows upsert behavior\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.subjectCode).to.eql(pm.environment.get(\"regularSubjectCode\"));",
+                                                                                    "    pm.expect(json.data.subjectName).to.eql(`Regular Subject Upsert ${pm.environment.get(\"runId\")}`);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Find Regular Subject By Search",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects?search={{regularSubjectCode}}\u0026page=0\u0026size=10\u0026sortBy=id\u0026sortDir=asc\u0026academicYear={{primaryAcademicYear}}\u0026semester={{primarySemesterName}}\u0026classYear={{classYear}}\u0026majorCode={{majorCode}}\u0026programType=CQ"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Find regular subject returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Regular subject can be resolved to id and majorId\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.items).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    pm.expect(json.data.items[0].subjectCode).to.eql(pm.environment.get(\"regularSubjectCode\"));",
+                                                                                    "});",
+                                                                                    "pm.environment.set(\"regularSubjectId\", json.data.items[0].id);",
+                                                                                    "pm.environment.set(\"subjectMajorId\", json.data.items[0].majorId);"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Create Common Subject",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"subjectCode\": \"{{commonSubjectCode}}\",\n  \"subjectName\": \"Common Subject {{runId}}\",\n  \"studentsPerClass\": 50,\n  \"numberOfClasses\": 1,\n  \"credits\": 2,\n  \"theoryHours\": 20,\n  \"exerciseHours\": 10,\n  \"projectHours\": 0,\n  \"labHours\": 0,\n  \"selfStudyHours\": 30,\n  \"department\": \"GeneralStudies\",\n  \"examFormat\": \"Written\",\n  \"classYear\": \"{{classYear}}\",\n  \"facultyId\": \"{{facultyId}}\",\n  \"majorId\": \"{{majorCode}}\",\n  \"majorName\": \"API Major {{runId}}\",\n  \"programType\": \"Chung\",\n  \"numberOfStudents\": 120,\n  \"semesterName\": \"{{primarySemesterName}}\",\n  \"academicYear\": \"{{primaryAcademicYear}}\",\n  \"isCommon\": true\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Create common subject returns 201\", function () { pm.response.to.have.status(201); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Common subject create response is successful\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.subjectCode).to.eql(pm.environment.get(\"commonSubjectCode\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Find Common Subject By Search",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects?search={{commonSubjectCode}}\u0026page=0\u0026size=10\u0026sortBy=id\u0026sortDir=asc\u0026academicYear={{primaryAcademicYear}}\u0026semester={{primarySemesterName}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Find common subject returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Common subject can be resolved to id\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.items).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    pm.expect(json.data.items[0].subjectCode).to.eql(pm.environment.get(\"commonSubjectCode\"));",
+                                                                                    "});",
+                                                                                    "pm.environment.set(\"commonSubjectId\", json.data.items[0].id);"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Create Delete-By-Name Subject",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"subjectCode\": \"{{deleteNameSubjectCode}}\",\n  \"subjectName\": \"Delete By Name Subject {{runId}}\",\n  \"studentsPerClass\": 35,\n  \"numberOfClasses\": 1,\n  \"credits\": 2,\n  \"theoryHours\": 15,\n  \"exerciseHours\": 15,\n  \"projectHours\": 0,\n  \"labHours\": 0,\n  \"selfStudyHours\": 20,\n  \"department\": \"SoftwareEngineering\",\n  \"examFormat\": \"Written\",\n  \"classYear\": \"{{classYear}}\",\n  \"facultyId\": \"{{facultyId}}\",\n  \"majorId\": \"{{majorCode}}\",\n  \"majorName\": \"API Major {{runId}}\",\n  \"programType\": \"CQ\",\n  \"numberOfStudents\": 35,\n  \"semesterName\": \"{{deleteNameSemesterName}}\",\n  \"academicYear\": \"{{deleteNameAcademicYear}}\",\n  \"isCommon\": false\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Create delete-name subject returns 201\", function () { pm.response.to.have.status(201); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Delete-name subject create response is successful\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.subjectCode).to.eql(pm.environment.get(\"deleteNameSubjectCode\"));",
+                                                                                    "    pm.expect(json.data.semesterName).to.eql(pm.environment.get(\"deleteNameSemesterName\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get All Subjects With Filters",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects?search={{regularSubjectCode}}\u0026page=0\u0026size=10\u0026sortBy=id\u0026sortDir=asc\u0026academicYear={{primaryAcademicYear}}\u0026semester={{primarySemesterName}}\u0026classYear={{classYear}}\u0026majorCode={{majorCode}}\u0026programType=CQ"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get subjects with filters returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Filtered subject page contains the regular subject\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.items).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    pm.expect(json.data.items[0].subjectCode).to.eql(pm.environment.get(\"regularSubjectCode\"));",
+                                                                                    "    pm.expect(json.data.items[0].majorCode).to.eql(pm.environment.get(\"majorCode\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Subjects By Major Id",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/major/{{subjectMajorId}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get subjects by major returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Subjects by major include created records\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    const codes = json.data.map(item =\u003e item.subjectCode);",
+                                                                                    "    pm.expect(codes).to.include(pm.environment.get(\"regularSubjectCode\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Program Types - All",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/program-types"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get all program types returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Program types list is present\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Program Types - Filtered",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/program-types?semester={{primarySemesterName}}\u0026academicYear={{primaryAcademicYear}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get filtered program types returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Filtered program types include CQ and Chung\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.include(\"CQ\");",
+                                                                                    "    pm.expect(json.data).to.include(\"Chung\");",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Class Years - All",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/class-years"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get all class years returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Class years list is present\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Class Years - Filtered",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/class-years?semester={{primarySemesterName}}\u0026academicYear={{primaryAcademicYear}}\u0026programType=CQ"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get filtered class years returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Filtered class years include the test class year\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.include(pm.environment.get(\"classYear\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Subjects By Majors - CQ",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/majors?semesterName={{primarySemesterName}}\u0026academicYear={{primaryAcademicYear}}\u0026classYear={{classYear}}\u0026programType=CQ\u0026majorCodes={{majorCode}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get subjects by majors returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Subjects by majors include regular subject\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    const codes = json.data.map(item =\u003e item.subjectCode);",
+                                                                                    "    pm.expect(codes).to.include(pm.environment.get(\"regularSubjectCode\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Subjects By Majors - Chung",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/majors?semesterName={{primarySemesterName}}\u0026academicYear={{primaryAcademicYear}}\u0026classYear={{classYear}}\u0026programType=Chung\u0026majorCodes={{majorCode}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get common subjects via majors endpoint returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Common subject response contains grouped common entry\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    pm.expect(json.data[0].subjectCode).to.eql(pm.environment.get(\"commonSubjectCode\"));",
+                                                                                    "    pm.expect(json.data[0].majorCode).to.eql(\"Chung\");",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Group Majors",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/group-majors?semesterName={{primarySemesterName}}\u0026academicYear={{primaryAcademicYear}}\u0026classYear={{classYear}}\u0026programType=CQ"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get group majors returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Group majors include the generated major code\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    const flattened = json.data.flat();",
+                                                                                    "    pm.expect(flattened).to.include(pm.environment.get(\"majorCode\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Common Subjects",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/common-subjects?semesterName={{primarySemesterName}}\u0026academicYear={{primaryAcademicYear}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Get common subjects returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Common subjects endpoint includes grouped common subject\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    pm.expect(json.data[0].subjectCode).to.eql(pm.environment.get(\"commonSubjectCode\"));",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Update Regular Subject",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/{{regularSubjectId}}",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"subjectCode\": \"{{regularSubjectCode}}\",\n  \"subjectName\": \"Regular Subject Patched {{runId}}\",\n  \"studentsPerClass\": 42,\n  \"numberOfClasses\": 4,\n  \"credits\": 3,\n  \"theoryHours\": 28,\n  \"exerciseHours\": 12,\n  \"projectHours\": 4,\n  \"labHours\": 0,\n  \"selfStudyHours\": 50,\n  \"department\": \"SoftwareEngineering\",\n  \"examFormat\": \"Project\",\n  \"classYear\": \"{{classYear}}\",\n  \"facultyId\": \"{{facultyId}}\",\n  \"majorId\": \"{{majorCode}}\",\n  \"majorName\": \"API Major {{runId}}\",\n  \"programType\": \"CQ\",\n  \"numberOfStudents\": 100,\n  \"semesterName\": \"{{primarySemesterName}}\",\n  \"academicYear\": \"{{primaryAcademicYear}}\",\n  \"isCommon\": false\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Update regular subject returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Regular subject update response is successful\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.subjectCode).to.eql(pm.environment.get(\"regularSubjectCode\"));",
+                                                                                    "    pm.expect(json.data.subjectName).to.eql(`Regular Subject Patched ${pm.environment.get(\"runId\")}`);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Verify Updated Regular Subject",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects?search={{regularSubjectCode}}\u0026page=0\u0026size=10\u0026sortBy=id\u0026sortDir=asc\u0026academicYear={{primaryAcademicYear}}\u0026semester={{primarySemesterName}}\u0026classYear={{classYear}}\u0026majorCode={{majorCode}}\u0026programType=CQ"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Verify regular update returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Updated regular subject is visible in list\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.items).to.be.an(\"array\").that.is.not.empty;",
+                                                                                    "    pm.expect(json.data.items[0].subjectName).to.eql(`Regular Subject Patched ${pm.environment.get(\"runId\")}`);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Delete Common Subject By Id",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/{{commonSubjectId}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Delete common subject by id returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Delete common subject response is successful\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Delete Subjects By Semester Name",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/semester-name/{{deleteNameSemesterName}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Delete subjects by semester name returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Delete by semester name removed at least one record\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.be.at.least(1);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Delete Subjects By Semester Name And Academic Year",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/semester-name/{{primarySemesterName}}/academic-year/{{primaryAcademicYear}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Delete subjects by semester and academic year returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Delete by semester and academic year removed at least one record\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.be.at.least(1);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Verify Primary Subjects Deleted",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects?search={{regularSubjectCode}}\u0026page=0\u0026size=10\u0026sortBy=id\u0026sortDir=asc\u0026academicYear={{primaryAcademicYear}}\u0026semester={{primarySemesterName}}"
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Verify primary subjects deleted returns 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Primary semester subjects are no longer returned\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data.items).to.be.an(\"array\").with.lengthOf(0);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Upload Excel - Manual Valid .xlsx",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/upload-excel",
+                                                      "body":  {
+                                                                   "mode":  "formdata",
+                                                                   "formdata":  [
+                                                                                    {
+                                                                                        "key":  "file",
+                                                                                        "type":  "file",
+                                                                                        "src":  ""
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "semester",
+                                                                                        "value":  "{{excelSemesterLabel}}",
+                                                                                        "type":  "text"
+                                                                                    }
+                                                                                ]
+                                                               },
+                                                      "description":  "Manual request: attach một file .xlsx hợp lệ, ví dụ data\\full-ct.xlsx hoặc data\\data.xlsx trước khi gửi."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Manual valid upload should return 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Valid upload returns import summary\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(true);",
+                                                                                    "    pm.expect(json.data).to.have.property(\"successCount\");",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Upload Excel - Manual Invalid Extension",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/subjects/upload-excel",
+                                                      "body":  {
+                                                                   "mode":  "formdata",
+                                                                   "formdata":  [
+                                                                                    {
+                                                                                        "key":  "file",
+                                                                                        "type":  "file",
+                                                                                        "src":  ""
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "semester",
+                                                                                        "value":  "{{excelSemesterLabel}}",
+                                                                                        "type":  "text"
+                                                                                    }
+                                                                                ]
+                                                               },
+                                                      "description":  "Manual request: attach file sai định dạng như .txt/.md để backend trả 400."
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\"Manual invalid upload should return 400\", function () { pm.response.to.have.status(400); });",
+                                                                                    "const json = pm.response.json();",
+                                                                                    "pm.test(\"Invalid upload returns bad request message\", function () {",
+                                                                                    "    pm.expect(json.success).to.eql(false);",
+                                                                                    "    pm.expect(json.status).to.eql(400);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 }
+             ]
+}
